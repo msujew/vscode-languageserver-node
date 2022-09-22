@@ -961,7 +961,7 @@ export function createMessageConnection(messageReader: MessageReader, messageWri
 				if (notificationHandler) {
 					if (message.params === undefined) {
 						if (type !== undefined) {
-							if (type.numberOfParams !== 0 && type.parameterStructures !== ParameterStructures.byName) {
+							if (type.numberOfParams !== 0 && type.parameterStructures.kind !== ParameterStructures.byName.kind) {
 								logger.error(`Notification ${message.method} defines ${type.numberOfParams} params but received none.`);
 							}
 						}
@@ -974,7 +974,7 @@ export function createMessageConnection(messageReader: MessageReader, messageWri
 							notificationHandler({ token: params[0], value: params[1] } as ProgressParams<any>);
 						} else {
 							if (type !== undefined) {
-								if (type.parameterStructures === ParameterStructures.byName) {
+								if (type.parameterStructures.kind === ParameterStructures.byName.kind) {
 									logger.error(`Notification ${message.method} defines parameters by name but received parameters by position`);
 								}
 								if (type.numberOfParams !== message.params.length) {
@@ -984,7 +984,7 @@ export function createMessageConnection(messageReader: MessageReader, messageWri
 							notificationHandler(...params);
 						}
 					} else {
-						if (type !== undefined && type.parameterStructures === ParameterStructures.byPosition) {
+						if (type !== undefined && type.parameterStructures.kind === ParameterStructures.byPosition.kind) {
 							logger.error(`Notification ${message.method} defines parameters by position but received parameters by name`);
 						}
 						notificationHandler(message.params);
@@ -1219,19 +1219,19 @@ export function createMessageConnection(messageReader: MessageReader, messageWri
 	}
 
 	function computeSingleParam(parameterStructures: ParameterStructures, param: any): any | any[] {
-		switch(parameterStructures) {
-			case ParameterStructures.auto:
+		switch(parameterStructures.kind) {
+			case ParameterStructures.auto.kind:
 				if (isNamedParam(param)) {
 					return nullToUndefined(param);
 				} else {
 					return [undefinedToNull(param)];
 				}
-			case ParameterStructures.byName:
+			case ParameterStructures.byName.kind:
 				if (!isNamedParam(param)) {
 					throw new Error(`Received parameters by name but param is not an object literal.`);
 				}
 				return nullToUndefined(param);
-			case ParameterStructures.byPosition:
+			case ParameterStructures.byPosition.kind:
 				return [undefinedToNull(param)];
 			default:
 				throw new Error(`Unknown parameter structure ${parameterStructures.toString()}`);
@@ -1288,7 +1288,7 @@ export function createMessageConnection(messageReader: MessageReader, messageWri
 						messageParams = computeSingleParam(parameterStructures, args[paramStart]);
 						break;
 					default:
-						if (parameterStructures === ParameterStructures.byName) {
+						if (parameterStructures.kind === ParameterStructures.byName.kind) {
 							throw new Error(`Received ${numberOfParams} parameters for 'by Name' notification parameter structure.`);
 						}
 						messageParams = args.slice(paramStart, paramEnd).map(value => undefinedToNull(value));
@@ -1377,7 +1377,7 @@ export function createMessageConnection(messageReader: MessageReader, messageWri
 						messageParams = computeSingleParam(parameterStructures, args[paramStart]);
 						break;
 					default:
-						if (parameterStructures === ParameterStructures.byName) {
+						if (parameterStructures.kind === ParameterStructures.byName.kind) {
 							throw new Error(`Received ${numberOfParams} parameters for 'by Name' request parameter structure.`);
 						}
 						messageParams = args.slice(paramStart, paramEnd).map(value => undefinedToNull(value));

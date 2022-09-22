@@ -202,11 +202,16 @@ export class ParameterStructures {
 	 */
 	public static readonly byName = new ParameterStructures('byName');
 
-	private constructor(private readonly kind: string) {
+	private constructor(readonly kind: string) {
 	}
 
 	public static is(value: any): value is ParameterStructures {
-		return value === ParameterStructures.auto || value === ParameterStructures.byName || value === ParameterStructures.byPosition;
+		const candidate = value as ParameterStructures;
+		return is.objectLiteral(candidate)
+			&& is.string(candidate.kind)
+			&& (candidate.kind === ParameterStructures.auto.kind
+				|| candidate.kind === ParameterStructures.byName.kind
+				|| candidate.kind === ParameterStructures.byPosition.kind);
 	}
 
 	public toString(): string {
